@@ -1,0 +1,124 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import PageHeader from "@/components/PageHeader";
+import { Users, Calendar, DollarSign, TrendingUp } from "lucide-react";
+import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const today = format(new Date(), "yyyy-MM-dd");
+  const monthStart = format(new Date(new Date().getFullYear(), new Date().getMonth(), 1), "yyyy-MM-dd");
+
+  const { data: todaySessions } = useQuery({
+    queryKey: ["sessions-today", today],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("sessions")
+        .select("*, clients(name)")
+        .eq("date", today)
+        .order("start_time");
+      return data ?? [];
+    },
+  });
+
+  const { data: activeClients } = useQuery({
+    queryKey: ["active-clients-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("clients")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true);
+      return count ?? 0;
+    },
+  });
+
+  const { data: pendingPayments } = useQuery({
+    queryKey: ["pending-payments-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("payments")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count ?? 0;
+    },
+  });
+
+  const { data: monthlyRevenue } = useQuery({
+    queryKey: ["monthly-revenue", monthStart],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("payments")
+        .select("amount")
+        .eq("status", "paid")
+        .gte("payment_date", monthStart);
+      return data?.reduce((sum, p) => sum + Number(p.amount), 0) ?? 0;
+    },
+  });
+
+  const stats = [
+    { label: "Today's Sessions", value: todaySessions?.length ?? 0, icon: Calendar, color: "text-primary", onClick: () => navigate("/calendar") },
+    { label: "Active Clients", value: activeClients ?? 0, icon: Users, color: "text-accent-foreground", onClick: () => navigate("/clients") },
+    { label: "Pending Payments", value: pendingPayments ?? 0, icon: DollarSign, color: "text-warning", onClick: () => navigate("/payments") },
+    { label: "Monthly Revenue", value: `$${(monthlyRevenue ?? 0).toFixed(0)}`, icon: TrendingUp, color: "text-primary", onClick: () => navigate("/payments") },
+  ];
+
+  const statusColors: Record<string, string> = {
+    scheduled: "bg-primary/20 text-primary",
+    completed: "bg-success/20 text-success",
+    cancelled: "bg-destructive/20 text-destructive",
+    no_show: "bg-warning/20 text-warning",
+  };
+
+  return (
+    <div className="safe-bottom min-h-screen bg-background">
+      <PageHeader title="Dashboard" subtitle="Welcome back, trainer 💪" />
+
+      <div className="grid grid-cols-2 gap-3 px-4">
+        {stats.map((stat) => (
+          <button
+            key={stat.label}
+            onClick={stat.onClick}
+            className="glass-card animate-fade-up rounded-xl p-4 text-left transition-transform active:scale-[0.98]"
+          >
+            <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            <p className="mt-3 font-heading text-2xl font-bold text-foreground">{stat.value}</p>
+            <p className="text-xs text-muted-foreground">{stat.label}</p>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-6 px-4">
+        <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">Today's Schedule</h2>
+        {todaySessions?.length === 0 ? (
+          <div className="glass-card rounded-xl p-6 text-center">
+            <p className="text-muted-foreground">No sessions scheduled for today</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {todaySessions?.map((session) => (
+              <div key={session.id} className="glass-card flex items-center gap-3 rounded-xl p-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">
+                    {(session.clients as any)?.name ?? "Unknown"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {session.start_time.slice(0, 5)} – {session.end_time.slice(0, 5)}
+                  </p>
+                </div>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[session.status] ?? ""}`}>
+                  {session.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
