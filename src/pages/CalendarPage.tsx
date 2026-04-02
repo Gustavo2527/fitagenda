@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { Plus, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { format, addDays, startOfWeek, isSameDay, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function CalendarPage() {
   const { user } = useAuth();
@@ -59,7 +60,7 @@ export default function CalendarPage() {
       });
       if (error) throw error;
 
-      // Deduct 1 credit
+      // Deduzir 1 crédito
       const client = clients?.find((c) => c.id === clientId);
       if (client && client.remaining_credits > 0) {
         await supabase
@@ -72,13 +73,20 @@ export default function CalendarPage() {
       qc.invalidateQueries({ queryKey: ["sessions-week"] });
       qc.invalidateQueries({ queryKey: ["sessions-today"] });
       qc.invalidateQueries({ queryKey: ["clients-list"] });
-      toast.success("Session scheduled");
+      toast.success("Aula agendada");
       setOpen(false);
       setClientId("");
       setNotes("");
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const statusLabels: Record<string, string> = {
+    scheduled: "Agendada",
+    completed: "Concluída",
+    cancelled: "Cancelada",
+    no_show: "Faltou",
+  };
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -88,7 +96,7 @@ export default function CalendarPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sessions-week"] });
       qc.invalidateQueries({ queryKey: ["sessions-today"] });
-      toast.success("Session updated");
+      toast.success("Aula atualizada");
     },
   });
 
@@ -104,18 +112,18 @@ export default function CalendarPage() {
   return (
     <div className="safe-bottom min-h-screen bg-background">
       <PageHeader
-        title="Calendar"
-        subtitle={format(currentDate, "MMMM yyyy")}
+        title="Agenda"
+        subtitle={format(currentDate, "MMMM yyyy", { locale: ptBR })}
         action={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gradient-primary text-primary-foreground">
-                <Plus className="mr-1 h-4 w-4" /> Session
+                <Plus className="mr-1 h-4 w-4" /> Aula
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle className="font-heading">New Session</DialogTitle>
+                <DialogTitle className="font-heading">Nova Aula</DialogTitle>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
@@ -125,19 +133,19 @@ export default function CalendarPage() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label>Date</Label>
+                  <Label>Data</Label>
                   <Input type="date" value={format(selectedDate, "yyyy-MM-dd")} onChange={(e) => setSelectedDate(new Date(e.target.value + "T12:00:00"))} className="bg-secondary border-border" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Client *</Label>
+                  <Label>Aluno *</Label>
                   <Select value={clientId} onValueChange={setClientId} required>
                     <SelectTrigger className="bg-secondary border-border">
-                      <SelectValue placeholder="Select client" />
+                      <SelectValue placeholder="Selecione o aluno" />
                     </SelectTrigger>
                     <SelectContent>
                       {clients?.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
-                          {c.name} ({c.remaining_credits} credits)
+                          {c.name} ({c.remaining_credits} créditos)
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -145,20 +153,20 @@ export default function CalendarPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Start</Label>
+                    <Label>Início</Label>
                     <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="bg-secondary border-border" />
                   </div>
                   <div className="space-y-2">
-                    <Label>End</Label>
+                    <Label>Fim</Label>
                     <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="bg-secondary border-border" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Notes</Label>
-                  <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes" className="bg-secondary border-border" />
+                  <Label>Observações</Label>
+                  <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Observações opcionais" className="bg-secondary border-border" />
                 </div>
                 <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={createSession.isPending}>
-                  {createSession.isPending ? "Scheduling..." : "Schedule Session"}
+                  {createSession.isPending ? "Agendando..." : "Agendar Aula"}
                 </Button>
               </form>
             </DialogContent>
@@ -166,7 +174,7 @@ export default function CalendarPage() {
         }
       />
 
-      {/* Week Navigation */}
+      {/* Navegação da Semana */}
       <div className="flex items-center justify-between px-4 pb-3">
         <button onClick={() => setCurrentDate(addDays(currentDate, -7))} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary">
           <ChevronLeft className="h-5 w-5" />
@@ -188,7 +196,7 @@ export default function CalendarPage() {
                     : "text-muted-foreground hover:bg-secondary"
                 }`}
               >
-                <span className="font-medium">{format(day, "EEE").slice(0, 2)}</span>
+                <span className="font-medium">{format(day, "EEE", { locale: ptBR }).slice(0, 3)}</span>
                 <span className="text-sm font-bold">{format(day, "d")}</span>
                 {hasSession && !isSelected && <span className="h-1 w-1 rounded-full bg-primary" />}
               </button>
@@ -200,14 +208,14 @@ export default function CalendarPage() {
         </button>
       </div>
 
-      {/* Day Sessions */}
+      {/* Aulas do Dia */}
       <div className="px-4">
         <h3 className="mb-2 text-sm font-medium text-muted-foreground">
-          {format(selectedDate, "EEEE, MMMM d")}
+          {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </h3>
         {daySessions.length === 0 ? (
           <div className="glass-card rounded-xl p-6 text-center">
-            <p className="text-sm text-muted-foreground">No sessions this day</p>
+            <p className="text-sm text-muted-foreground">Nenhuma aula neste dia</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -233,10 +241,10 @@ export default function CalendarPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="scheduled">Scheduled</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                      <SelectItem value="no_show">No Show</SelectItem>
+                      <SelectItem value="scheduled">Agendada</SelectItem>
+                      <SelectItem value="completed">Concluída</SelectItem>
+                      <SelectItem value="cancelled">Cancelada</SelectItem>
+                      <SelectItem value="no_show">Faltou</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

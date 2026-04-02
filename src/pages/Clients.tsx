@@ -60,7 +60,7 @@ export default function Clients() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clients"] });
       qc.invalidateQueries({ queryKey: ["active-clients-count"] });
-      toast.success("Client added");
+      toast.success("Aluno adicionado");
       setOpen(false);
       setName("");
       setEmail("");
@@ -73,18 +73,18 @@ export default function Clients() {
   return (
     <div className="safe-bottom min-h-screen bg-background">
       <PageHeader
-        title="Clients"
-        subtitle={`${clients?.length ?? 0} total`}
+        title="Alunos"
+        subtitle={`${clients?.length ?? 0} no total`}
         action={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gradient-primary text-primary-foreground">
-                <Plus className="mr-1 h-4 w-4" /> Add
+                <Plus className="mr-1 h-4 w-4" /> Adicionar
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle className="font-heading">New Client</DialogTitle>
+                <DialogTitle className="font-heading">Novo Aluno</DialogTitle>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
@@ -94,34 +94,34 @@ export default function Clients() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label>Name *</Label>
+                  <Label>Nome *</Label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} required className="bg-secondary border-border" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Email</Label>
+                  <Label>E-mail</Label>
                   <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-secondary border-border" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Phone</Label>
+                  <Label>Telefone</Label>
                   <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-secondary border-border" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Assign Plan</Label>
+                  <Label>Atribuir Plano</Label>
                   <Select value={planId} onValueChange={setPlanId}>
                     <SelectTrigger className="bg-secondary border-border">
-                      <SelectValue placeholder="Select a plan" />
+                      <SelectValue placeholder="Selecione um plano" />
                     </SelectTrigger>
                     <SelectContent>
                       {plans?.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
-                          {p.name} ({p.total_sessions} sessions – ${p.price})
+                          {p.name} ({p.total_sessions} aulas – R${p.price})
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={createClient.isPending}>
-                  {createClient.isPending ? "Adding..." : "Add Client"}
+                  {createClient.isPending ? "Adicionando..." : "Adicionar Aluno"}
                 </Button>
               </form>
             </DialogContent>
@@ -139,7 +139,7 @@ export default function Clients() {
         ) : clients?.length === 0 ? (
           <div className="glass-card rounded-xl p-8 text-center">
             <User className="mx-auto h-10 w-10 text-muted-foreground" />
-            <p className="mt-2 text-muted-foreground">No clients yet. Add your first client!</p>
+            <p className="mt-2 text-muted-foreground">Nenhum aluno ainda. Adicione seu primeiro aluno!</p>
           </div>
         ) : (
           clients?.map((client) => (
@@ -152,13 +152,13 @@ export default function Clients() {
               <div className="flex-1">
                 <p className="font-medium text-foreground">{client.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {(client.plans as any)?.name ?? "No plan"} • {client.remaining_credits} credits left
+                  {(client.plans as any)?.name ?? "Sem plano"} • {client.remaining_credits} créditos restantes
                 </p>
               </div>
               <div className="flex items-center gap-1">
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
                 <span className={`text-xs font-medium ${client.is_active ? "text-primary" : "text-muted-foreground"}`}>
-                  {client.is_active ? "Active" : "Inactive"}
+                  {client.is_active ? "Ativo" : "Inativo"}
                 </span>
               </div>
             </div>

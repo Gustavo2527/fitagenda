@@ -58,11 +58,18 @@ export default function Dashboard() {
     },
   });
 
+  const statusLabels: Record<string, string> = {
+    scheduled: "Agendada",
+    completed: "Concluída",
+    cancelled: "Cancelada",
+    no_show: "Faltou",
+  };
+
   const stats = [
-    { label: "Today's Sessions", value: todaySessions?.length ?? 0, icon: Calendar, color: "text-primary", onClick: () => navigate("/calendar") },
-    { label: "Active Clients", value: activeClients ?? 0, icon: Users, color: "text-accent-foreground", onClick: () => navigate("/clients") },
-    { label: "Pending Payments", value: pendingPayments ?? 0, icon: DollarSign, color: "text-warning", onClick: () => navigate("/payments") },
-    { label: "Monthly Revenue", value: `$${(monthlyRevenue ?? 0).toFixed(0)}`, icon: TrendingUp, color: "text-primary", onClick: () => navigate("/payments") },
+    { label: "Aulas Hoje", value: todaySessions?.length ?? 0, icon: Calendar, color: "text-primary", onClick: () => navigate("/calendar") },
+    { label: "Alunos Ativos", value: activeClients ?? 0, icon: Users, color: "text-accent-foreground", onClick: () => navigate("/clients") },
+    { label: "Pgtos Pendentes", value: pendingPayments ?? 0, icon: DollarSign, color: "text-warning", onClick: () => navigate("/payments") },
+    { label: "Receita Mensal", value: `R$${(monthlyRevenue ?? 0).toFixed(0)}`, icon: TrendingUp, color: "text-primary", onClick: () => navigate("/payments") },
   ];
 
   const statusColors: Record<string, string> = {
@@ -74,7 +81,7 @@ export default function Dashboard() {
 
   return (
     <div className="safe-bottom min-h-screen bg-background">
-      <PageHeader title="Dashboard" subtitle="Welcome back, trainer 💪" />
+      <PageHeader title="Painel" subtitle="Bem-vindo de volta, treinador 💪" />
 
       <div className="grid grid-cols-2 gap-3 px-4">
         {stats.map((stat) => (
@@ -91,10 +98,10 @@ export default function Dashboard() {
       </div>
 
       <div className="mt-6 px-4">
-        <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">Today's Schedule</h2>
+        <h2 className="mb-3 font-heading text-lg font-semibold text-foreground">Agenda de Hoje</h2>
         {todaySessions?.length === 0 ? (
           <div className="glass-card rounded-xl p-6 text-center">
-            <p className="text-muted-foreground">No sessions scheduled for today</p>
+            <p className="text-muted-foreground">Nenhuma aula agendada para hoje</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -105,14 +112,14 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">
-                    {(session.clients as any)?.name ?? "Unknown"}
+                    {(session.clients as any)?.name ?? "Desconhecido"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {session.start_time.slice(0, 5)} – {session.end_time.slice(0, 5)}
                   </p>
                 </div>
                 <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[session.status] ?? ""}`}>
-                  {session.status}
+                  {statusLabels[session.status] ?? session.status}
                 </span>
               </div>
             ))}
