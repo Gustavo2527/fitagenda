@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
+import { useNotifications } from "@/hooks/useNotifications";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/CalendarPage";
@@ -17,6 +18,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function AppLayout({ children }: { children: React.ReactNode }) {
+  useNotifications();
   return (
     <>
       {children}
