@@ -40,7 +40,7 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email to verify.");
+        toast.success("Conta criada! Verifique seu e-mail para confirmar.");
       }
     } catch (err: any) {
       toast.error(err.message);
@@ -58,38 +58,38 @@ export default function Auth() {
           </div>
           <h1 className="font-heading text-3xl font-bold text-foreground">FitPro</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isLogin ? "Welcome back, trainer" : "Start managing your clients"}
+            {isLogin ? "Bem-vindo de volta, treinador" : "Comece a gerenciar seus alunos"}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div className="space-y-2">
-              <Label htmlFor="name">Your name</Label>
+              <Label htmlFor="name">Seu nome</Label>
               <Input
                 id="name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="John Doe"
+                placeholder="João Silva"
                 required={!isLogin}
                 className="bg-card border-border"
               />
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="trainer@example.com"
+              placeholder="treinador@exemplo.com"
               required
               className="bg-card border-border"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
               type="password"
@@ -103,15 +103,15 @@ export default function Auth() {
           </div>
 
           <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>
-            {submitting ? "Loading..." : isLogin ? "Sign in" : "Create account"}
+            {submitting ? "Carregando..." : isLogin ? "Entrar" : "Criar conta"}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          {isLogin ? "Não tem uma conta?" : "Já tem uma conta?"}{" "}
           <button onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline">
-            {isLogin ? "Sign up" : "Sign in"}
+            {isLogin ? "Cadastre-se" : "Entrar"}
           </button>
         </p>
       </div>

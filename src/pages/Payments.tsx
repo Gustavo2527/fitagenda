@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { Plus, DollarSign, CheckCircle, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Payments() {
   const { user } = useAuth();
@@ -63,7 +64,7 @@ export default function Payments() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["pending-payments-count"] });
-      toast.success("Payment recorded");
+      toast.success("Pagamento registrado");
       setOpen(false);
       setClientId("");
       setPlanId("");
@@ -85,11 +86,10 @@ export default function Payments() {
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["pending-payments-count"] });
       qc.invalidateQueries({ queryKey: ["monthly-revenue"] });
-      toast.success("Payment confirmed");
+      toast.success("Pagamento confirmado");
     },
   });
 
-  // Auto-fill amount when plan selected
   const handlePlanChange = (id: string) => {
     setPlanId(id);
     const plan = plans?.find((p) => p.id === id);
@@ -100,21 +100,27 @@ export default function Payments() {
     ?.filter((p) => p.status === "paid")
     .reduce((sum, p) => sum + Number(p.amount), 0) ?? 0;
 
+  const statusLabels: Record<string, string> = {
+    pending: "Pendente",
+    paid: "Pago",
+    refunded: "Reembolsado",
+  };
+
   return (
     <div className="safe-bottom min-h-screen bg-background">
       <PageHeader
-        title="Payments"
-        subtitle={`$${monthlyTotal.toFixed(0)} total revenue`}
+        title="Pagamentos"
+        subtitle={`R$${monthlyTotal.toFixed(0)} receita total`}
         action={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gradient-primary text-primary-foreground">
-                <Plus className="mr-1 h-4 w-4" /> Record
+                <Plus className="mr-1 h-4 w-4" /> Registrar
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle className="font-heading">Record Payment</DialogTitle>
+                <DialogTitle className="font-heading">Registrar Pagamento</DialogTitle>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
@@ -124,10 +130,10 @@ export default function Payments() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label>Client *</Label>
+                  <Label>Aluno *</Label>
                   <Select value={clientId} onValueChange={setClientId} required>
                     <SelectTrigger className="bg-secondary border-border">
-                      <SelectValue placeholder="Select client" />
+                      <SelectValue placeholder="Selecione o aluno" />
                     </SelectTrigger>
                     <SelectContent>
                       {clients?.map((c) => (
@@ -137,30 +143,30 @@ export default function Payments() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Plan</Label>
+                  <Label>Plano</Label>
                   <Select value={planId} onValueChange={handlePlanChange}>
                     <SelectTrigger className="bg-secondary border-border">
-                      <SelectValue placeholder="Select plan" />
+                      <SelectValue placeholder="Selecione o plano" />
                     </SelectTrigger>
                     <SelectContent>
                       {plans?.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.name} – ${p.price}</SelectItem>
+                        <SelectItem key={p.id} value={p.id}>{p.name} – R${p.price}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Amount ($) *</Label>
+                    <Label>Valor (R$) *</Label>
                     <Input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required className="bg-secondary border-border" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Method</Label>
-                    <Input value={method} onChange={(e) => setMethod(e.target.value)} placeholder="Cash, PIX..." className="bg-secondary border-border" />
+                    <Label>Método</Label>
+                    <Input value={method} onChange={(e) => setMethod(e.target.value)} placeholder="Dinheiro, PIX..." className="bg-secondary border-border" />
                   </div>
                 </div>
                 <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={createPayment.isPending}>
-                  {createPayment.isPending ? "Saving..." : "Record Payment"}
+                  {createPayment.isPending ? "Salvando..." : "Registrar Pagamento"}
                 </Button>
               </form>
             </DialogContent>
@@ -178,7 +184,7 @@ export default function Payments() {
         ) : payments?.length === 0 ? (
           <div className="glass-card rounded-xl p-8 text-center">
             <DollarSign className="mx-auto h-10 w-10 text-muted-foreground" />
-            <p className="mt-2 text-muted-foreground">No payments recorded yet</p>
+            <p className="mt-2 text-muted-foreground">Nenhum pagamento registrado ainda</p>
           </div>
         ) : (
           payments?.map((payment) => (
@@ -195,17 +201,17 @@ export default function Payments() {
               <div className="flex-1">
                 <p className="font-medium text-foreground">{(payment.clients as any)?.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {(payment.plans as any)?.name ?? "Custom"} • {payment.payment_date ? format(new Date(payment.payment_date), "MMM d") : "Pending"}
+                  {(payment.plans as any)?.name ?? "Avulso"} • {payment.payment_date ? format(new Date(payment.payment_date), "d MMM", { locale: ptBR }) : "Pendente"}
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-heading font-bold text-foreground">${Number(payment.amount).toFixed(0)}</p>
+                <p className="font-heading font-bold text-foreground">R${Number(payment.amount).toFixed(0)}</p>
                 {payment.status === "pending" && (
                   <button
                     onClick={() => confirmPayment.mutate(payment.id)}
                     className="text-xs text-primary hover:underline"
                   >
-                    Confirm
+                    Confirmar
                   </button>
                 )}
               </div>

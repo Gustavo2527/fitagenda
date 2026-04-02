@@ -2,11 +2,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Calendar, Users, CreditCard, Dumbbell } from "lucide-react";
 
 const navItems = [
-  { path: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { path: "/calendar", icon: Calendar, label: "Calendar" },
-  { path: "/clients", icon: Users, label: "Clients" },
-  { path: "/plans", icon: Dumbbell, label: "Plans" },
-  { path: "/payments", icon: CreditCard, label: "Payments" },
+  { path: "/", icon: LayoutDashboard, label: "Painel" },
+  { path: "/calendar", icon: Calendar, label: "Agenda" },
+  { path: "/clients", icon: Users, label: "Alunos" },
+  { path: "/plans", icon: Dumbbell, label: "Planos" },
+  { path: "/payments", icon: CreditCard, label: "Pagamentos" },
 ];
 
 export default function BottomNav() {

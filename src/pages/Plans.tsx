@@ -43,7 +43,7 @@ export default function Plans() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["plans"] });
-      toast.success("Plan created");
+      toast.success("Plano criado");
       setOpen(false);
       setName("");
       setDescription("");
@@ -60,25 +60,25 @@ export default function Plans() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["plans"] });
-      toast.success("Plan updated");
+      toast.success("Plano atualizado");
     },
   });
 
   return (
     <div className="safe-bottom min-h-screen bg-background">
       <PageHeader
-        title="Plans"
-        subtitle="Manage training packages"
+        title="Planos"
+        subtitle="Gerencie seus pacotes"
         action={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gradient-primary text-primary-foreground">
-                <Plus className="mr-1 h-4 w-4" /> New
+                <Plus className="mr-1 h-4 w-4" /> Novo
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle className="font-heading">New Plan</DialogTitle>
+                <DialogTitle className="font-heading">Novo Plano</DialogTitle>
               </DialogHeader>
               <form
                 onSubmit={(e) => {
@@ -88,25 +88,25 @@ export default function Plans() {
                 className="space-y-4"
               >
                 <div className="space-y-2">
-                  <Label>Plan Name *</Label>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Starter Pack" className="bg-secondary border-border" />
+                  <Label>Nome do Plano *</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Ex: Pacote Iniciante" className="bg-secondary border-border" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" className="bg-secondary border-border" />
+                  <Label>Descrição</Label>
+                  <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descrição" className="bg-secondary border-border" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Sessions *</Label>
+                    <Label>Aulas *</Label>
                     <Input type="number" min="1" value={sessions} onChange={(e) => setSessions(e.target.value)} required placeholder="5" className="bg-secondary border-border" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Price ($) *</Label>
-                    <Input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} required placeholder="80.00" className="bg-secondary border-border" />
+                    <Label>Preço (R$) *</Label>
+                    <Input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} required placeholder="80,00" className="bg-secondary border-border" />
                   </div>
                 </div>
                 <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={createPlan.isPending}>
-                  {createPlan.isPending ? "Creating..." : "Create Plan"}
+                  {createPlan.isPending ? "Criando..." : "Criar Plano"}
                 </Button>
               </form>
             </DialogContent>
@@ -124,7 +124,7 @@ export default function Plans() {
         ) : plans?.length === 0 ? (
           <div className="glass-card rounded-xl p-8 text-center">
             <Dumbbell className="mx-auto h-10 w-10 text-muted-foreground" />
-            <p className="mt-2 text-muted-foreground">No plans yet. Create your first plan!</p>
+            <p className="mt-2 text-muted-foreground">Nenhum plano ainda. Crie seu primeiro plano!</p>
           </div>
         ) : (
           plans?.map((plan) => (
@@ -142,10 +142,10 @@ export default function Plans() {
                   )}
                   <div className="mt-2 flex gap-4 text-sm">
                     <span className="text-foreground">
-                      <strong className="text-primary">{plan.total_sessions}</strong> sessions
+                      <strong className="text-primary">{plan.total_sessions}</strong> aulas
                     </span>
                     <span className="text-foreground">
-                      <strong className="text-primary">${plan.price}</strong>
+                      <strong className="text-primary">R${plan.price}</strong>
                     </span>
                   </div>
                 </div>
