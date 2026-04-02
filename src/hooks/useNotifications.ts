@@ -117,22 +117,23 @@ export function useNotifications() {
         const completionMs = endMs > startMs ? endMs : startMs;
         if (completionMs > now) {
           const timer = setTimeout(() => {
+            const options: NotificationOptions & { actions?: Array<{ action: string; title: string }>; data?: any; requireInteraction?: boolean } = {
+              body: `Aula com ${clientName} — marque como concluída`,
+              icon: "/placeholder.svg",
+              tag: `completion-${session.id}`,
+              actions: [
+                { action: "yes", title: "✅ Sim" },
+                { action: "no", title: "❌ Não" },
+              ],
+              data: {
+                type: "completion",
+                sessionId: session.id,
+              },
+              requireInteraction: true,
+            };
             swRegistrationRef.current?.showNotification(
               "✅ A aula foi realizada?",
-              {
-                body: `Aula com ${clientName} — marque como concluída`,
-                icon: "/placeholder.svg",
-                tag: `completion-${session.id}`,
-                actions: [
-                  { action: "yes", title: "✅ Sim" },
-                  { action: "no", title: "❌ Não" },
-                ],
-                data: {
-                  type: "completion",
-                  sessionId: session.id,
-                },
-                requireInteraction: true,
-              }
+              options as NotificationOptions
             );
           }, completionMs - now);
           timersRef.current.push(timer);
