@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
 import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPermissionModal from "@/components/NotificationPermissionModal";
+import SessionCompletionModal from "@/components/SessionCompletionModal";
+import IOSVersionWarning from "@/components/IOSVersionWarning";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/CalendarPage";
@@ -19,12 +21,20 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  useNotifications();
+  const { pendingCompletion, handleCompletionConfirm, dismissCompletion } = useNotifications();
   return (
     <>
       {children}
       <BottomNav />
       <NotificationPermissionModal />
+      <IOSVersionWarning />
+      <SessionCompletionModal
+        open={!!pendingCompletion}
+        sessionId={pendingCompletion?.sessionId ?? null}
+        clientName={pendingCompletion?.clientName ?? ""}
+        onConfirm={handleCompletionConfirm}
+        onClose={dismissCompletion}
+      />
     </>
   );
 }

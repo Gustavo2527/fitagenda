@@ -12,6 +12,7 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   if (data && data.type === "completion") {
+    // Non-iOS: action buttons
     const status = action === "sim" ? "completed" : action === "nao" ? "no_show" : null;
     if (status) {
       event.waitUntil(
@@ -29,6 +30,22 @@ self.addEventListener("notificationclick", (event) => {
         })
       );
     }
+  } else if (data && data.type === "completion_ios") {
+    // iOS: open app and show in-app modal
+    event.waitUntil(
+      self.clients.matchAll({ type: "window" }).then((clients) => {
+        if (clients.length > 0) {
+          clients[0].postMessage({
+            type: "OPEN_COMPLETION_MODAL",
+            sessionId: data.sessionId,
+            clientName: data.clientName,
+          });
+          clients[0].focus();
+        } else {
+          self.clients.openWindow("/calendar");
+        }
+      })
+    );
   } else {
     event.waitUntil(
       self.clients.matchAll({ type: "window" }).then((clients) => {
