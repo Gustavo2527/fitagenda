@@ -27,19 +27,13 @@ export function useNotifications() {
     const setup = async () => {
       // Register service worker
       try {
-        const reg = await navigator.serviceWorker.register("/sw.js");
+        const reg = await navigator.serviceWorker.register("/service-worker.js");
         swRegistrationRef.current = reg;
       } catch (err) {
         console.error("SW registration failed:", err);
       }
 
-      // Request permission
-      if (Notification.permission === "default") {
-        const result = await Notification.requestPermission();
-        if (result === "granted") {
-          toast.success("Notificações ativadas!");
-        }
-      }
+      // Permission is now handled by NotificationPermissionModal
     };
 
     setup();
