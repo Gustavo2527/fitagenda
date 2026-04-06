@@ -20,20 +20,17 @@ export function useNotifications() {
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const swRegistrationRef = useRef<ServiceWorkerRegistration | null>(null);
 
-  // Register SW and request permission
+  // Register SW
   useEffect(() => {
     if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
 
     const setup = async () => {
-      // Register service worker
       try {
         const reg = await navigator.serviceWorker.register("/service-worker.js");
         swRegistrationRef.current = reg;
       } catch (err) {
         console.error("SW registration failed:", err);
       }
-
-      // Permission is now handled by NotificationPermissionModal
     };
 
     setup();
@@ -69,7 +66,7 @@ export function useNotifications() {
 
   const scheduleNotifications = useCallback(
     (sessions: SessionWithClient[]) => {
-      // Clear previous timers
+      // Cancel old timers before recreating
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
 
@@ -83,15 +80,12 @@ export function useNotifications() {
 
         const clientName = (session.clients as any)?.name ?? "Cliente";
         const startTimeStr = session.start_time.slice(0, 5);
-        const endTimeStr = session.end_time.slice(0, 5);
 
-        // Parse times
+        // Parse start time
         const [sh, sm] = startTimeStr.split(":").map(Number);
         const startMs = new Date().setHours(sh, sm, 0, 0);
-        const [eh, em] = endTimeStr.split(":").map(Number);
-        const endMs = new Date().setHours(eh, em, 0, 0);
 
-        // 20 min reminder
+        // Notification 1 — 20 min before start
         const reminderMs = startMs - 20 * 60 * 1000;
         if (reminderMs > now) {
           const timer = setTimeout(() => {
@@ -99,25 +93,24 @@ export function useNotifications() {
               "⏰ Aula em 20 minutos!",
               {
                 body: `Sua aula com ${clientName} começa às ${startTimeStr}. Prepare-se!`,
-                icon: "/placeholder.svg",
-                tag: `reminder-${session.id}`,
+                icon: "/icon-192x192.png",
+                tag: `aula-${session.id}-reminder`,
               }
             );
           }, reminderMs - now);
           timersRef.current.push(timer);
         }
 
-        // End-of-session completion notification
-        const completionMs = endMs > startMs ? endMs : startMs;
-        if (completionMs > now) {
+        // Notification 2 — At start time (completion check)
+        if (startMs > now) {
           const timer = setTimeout(() => {
             const options: NotificationOptions & { actions?: Array<{ action: string; title: string }>; data?: any; requireInteraction?: boolean } = {
-              body: `Aula com ${clientName} — marque como concluída`,
-              icon: "/placeholder.svg",
-              tag: `completion-${session.id}`,
+              body: `Aula com ${clientName} — foi concluída?`,
+              icon: "/icon-192x192.png",
+              tag: `aula-${session.id}`,
               actions: [
-                { action: "yes", title: "✅ Sim" },
-                { action: "no", title: "❌ Não" },
+                { action: "sim", title: "✅ Sim" },
+                { action: "nao", title: "❌ Não" },
               ],
               data: {
                 type: "completion",
@@ -129,7 +122,7 @@ export function useNotifications() {
               "✅ A aula foi realizada?",
               options as NotificationOptions
             );
-          }, completionMs - now);
+          }, startMs - now);
           timersRef.current.push(timer);
         }
       });

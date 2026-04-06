@@ -12,9 +12,8 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   if (data && data.type === "completion") {
-    const status = action === "yes" ? "completed" : action === "no" ? "no_show" : null;
+    const status = action === "sim" ? "completed" : action === "nao" ? "no_show" : null;
     if (status) {
-      // Send message to all clients to update session status
       event.waitUntil(
         self.clients.matchAll({ type: "window" }).then((clients) => {
           clients.forEach((client) => {
@@ -31,7 +30,6 @@ self.addEventListener("notificationclick", (event) => {
       );
     }
   } else {
-    // For reminder notifications, just focus the app
     event.waitUntil(
       self.clients.matchAll({ type: "window" }).then((clients) => {
         if (clients.length > 0) {
