@@ -1,4 +1,4 @@
-// Service Worker for FitPro notifications
+// Service Worker for FitAgenda PWA
 self.addEventListener("install", (e) => {
   self.skipWaiting();
 });
@@ -24,7 +24,6 @@ self.addEventListener("notificationclick", (event) => {
               status,
             });
           });
-          // Focus first window if available
           if (clients.length > 0) {
             clients[0].focus();
           }

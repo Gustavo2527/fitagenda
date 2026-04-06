@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BottomNav from "@/components/BottomNav";
 import { useNotifications } from "@/hooks/useNotifications";
+import NotificationPermissionModal from "@/components/NotificationPermissionModal";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/CalendarPage";
@@ -23,6 +24,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     <>
       {children}
       <BottomNav />
+      <NotificationPermissionModal />
     </>
   );
 }
