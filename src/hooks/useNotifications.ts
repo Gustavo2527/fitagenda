@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { isIOS, supportsIOSNotifications } from "@/lib/ios-detection";
+import { isIOS } from "@/lib/ios-detection";
 
 interface SessionWithClient {
   id: string;
@@ -47,7 +47,6 @@ export function useNotifications() {
         const { sessionId, status } = event.data;
         await updateSessionStatus(sessionId, status);
       }
-      // iOS: SW sends OPEN_COMPLETION_MODAL
       if (event.data?.type === "OPEN_COMPLETION_MODAL") {
         const { sessionId, clientName } = event.data;
         setPendingCompletion({ sessionId, clientName });
@@ -86,27 +85,51 @@ export function useNotifications() {
 
   const scheduleNotifications = useCallback(
     (sessions: SessionWithClient[]) => {
+      // Clear old timers
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
 
-      if (Notification.permission !== "granted") return;
+      console.log("[Notificações] Iniciando agendamento de notificações...");
+      console.log(`[Notificações] Permissão: ${typeof Notification !== "undefined" ? Notification.permission : "N/A"}`);
+
+      if (typeof Notification === "undefined" || Notification.permission !== "granted") {
+        console.log("[Notificações] Permissão não concedida, abortando.");
+        return;
+      }
 
       const now = Date.now();
       const today = format(new Date(), "yyyy-MM-dd");
 
       sessions.forEach((session) => {
-        if (session.status !== "scheduled" || session.date !== today) return;
-
         const clientName = (session.clients as any)?.name ?? "Cliente";
-        const startTimeStr = session.start_time.slice(0, 5);
 
+        if (session.status !== "scheduled") {
+          console.log(`[Notificações] ${clientName} - ignorada (status: ${session.status})`);
+          return;
+        }
+        if (session.date !== today) {
+          console.log(`[Notificações] ${clientName} - ignorada (data: ${session.date}, hoje: ${today})`);
+          return;
+        }
+
+        const startTimeStr = session.start_time.slice(0, 5);
         const [sh, sm] = startTimeStr.split(":").map(Number);
-        const startMs = new Date().setHours(sh, sm, 0, 0);
+
+        // Use local timezone explicitly: new Date(year, month, day, hour, minute)
+        const nowDate = new Date();
+        const startDate = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate(), sh, sm, 0, 0);
+        const startMs = startDate.getTime();
+
+        console.log(`[Notificações] ${clientName} | Horário: ${startTimeStr} | startMs: ${startMs} | now: ${now}`);
 
         // Notification 1 — 20 min before start
         const reminderMs = startMs - 20 * 60 * 1000;
-        if (reminderMs > now) {
+        const msUntilReminder = reminderMs - now;
+
+        if (msUntilReminder > 0) {
+          console.log(`[Notificações] ${clientName} | ⏰ Lembrete em ${Math.round(msUntilReminder / 1000)}s (${Math.round(msUntilReminder / 60000)} min)`);
           const timer = setTimeout(() => {
+            console.log(`[Notificações] ${clientName} | Disparando lembrete de 20 min`);
             swRegistrationRef.current?.showNotification(
               "⏰ Aula em 20 minutos!",
               {
@@ -115,15 +138,19 @@ export function useNotifications() {
                 tag: `aula-${session.id}-reminder`,
               }
             );
-          }, reminderMs - now);
+          }, msUntilReminder);
           timersRef.current.push(timer);
+        } else {
+          console.log(`[Notificações] ${clientName} | ⏰ Lembrete IGNORADO (já passou por ${Math.round(-msUntilReminder / 1000)}s)`);
         }
 
         // Notification 2 — At start time
-        if (startMs > now) {
+        const msUntilStart = startMs - now;
+        if (msUntilStart > 0) {
+          console.log(`[Notificações] ${clientName} | ✅ Confirmação em ${Math.round(msUntilStart / 1000)}s (${Math.round(msUntilStart / 60000)} min)`);
           const timer = setTimeout(() => {
+            console.log(`[Notificações] ${clientName} | Disparando notificação de confirmação`);
             if (isiOS) {
-              // iOS: simple notification, completion modal opens on click
               swRegistrationRef.current?.showNotification(
                 "✅ A aula foi realizada?",
                 {
@@ -138,7 +165,6 @@ export function useNotifications() {
                 }
               );
             } else {
-              // Non-iOS: action buttons in notification
               const options: NotificationOptions & { actions?: Array<{ action: string; title: string }>; data?: any; requireInteraction?: boolean } = {
                 body: `Aula com ${clientName} — foi concluída?`,
                 icon: "/icon-192x192.png",
@@ -158,31 +184,39 @@ export function useNotifications() {
                 options as NotificationOptions
               );
             }
-          }, startMs - now);
+          }, msUntilStart);
           timersRef.current.push(timer);
+        } else {
+          console.log(`[Notificações] ${clientName} | ✅ Confirmação IGNORADA (já passou por ${Math.round(-msUntilStart / 1000)}s)`);
         }
       });
+
+      console.log(`[Notificações] Total de timers agendados: ${timersRef.current.length}`);
     },
     [isiOS]
   );
 
-  // Fetch today's sessions and schedule
-  useEffect(() => {
+  const fetchAndSchedule = useCallback(async () => {
     if (!user) return;
 
     const today = format(new Date(), "yyyy-MM-dd");
+    console.log(`[Notificações] Buscando aulas do dia ${today}...`);
 
-    const fetchAndSchedule = async () => {
-      const { data } = await supabase
-        .from("sessions")
-        .select("id, date, start_time, end_time, status, clients(name)")
-        .eq("date", today)
-        .eq("status", "scheduled");
+    const { data } = await supabase
+      .from("sessions")
+      .select("id, date, start_time, end_time, status, clients(name)")
+      .eq("date", today)
+      .eq("status", "scheduled");
 
-      if (data) {
-        scheduleNotifications(data as SessionWithClient[]);
-      }
-    };
+    if (data) {
+      console.log(`[Notificações] ${data.length} aula(s) encontrada(s)`);
+      scheduleNotifications(data as SessionWithClient[]);
+    }
+  }, [user, scheduleNotifications]);
+
+  // Fetch today's sessions and schedule on mount
+  useEffect(() => {
+    if (!user) return;
 
     fetchAndSchedule();
 
@@ -190,7 +224,13 @@ export function useNotifications() {
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
     };
-  }, [user, scheduleNotifications]);
+  }, [user, fetchAndSchedule]);
 
-  return { pendingCompletion, handleCompletionConfirm, dismissCompletion };
+  // Expose rescheduleToday so other components can trigger re-scheduling
+  const rescheduleToday = useCallback(() => {
+    console.log("[Notificações] Reagendando timers do dia...");
+    fetchAndSchedule();
+  }, [fetchAndSchedule]);
+
+  return { pendingCompletion, handleCompletionConfirm, dismissCompletion, rescheduleToday };
 }
