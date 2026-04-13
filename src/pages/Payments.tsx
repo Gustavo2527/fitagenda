@@ -23,6 +23,9 @@ export default function Payments() {
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("");
 
+  // Realtime: auto-refresh when payments or clients change
+  useRealtimeTable("payments", [["payments"], ["pending-payments-count"], ["monthly-revenue"]]);
+  useRealtimeTable("clients", [["clients"], ["clients-list"], ["clients-for-payment"], ["active-clients-count"]]);
   const { data: payments, isLoading } = useQuery({
     queryKey: ["payments"],
     queryFn: async () => {
@@ -77,17 +80,43 @@ export default function Payments() {
 
   const confirmPayment = useMutation({
     mutationFn: async (id: string) => {
+      // Find the payment to get client_id and plan info
+      const payment = payments?.find((p) => p.id === id);
+      
       const { error } = await supabase
         .from("payments")
         .update({ status: "paid" as const, payment_date: new Date().toISOString().split("T")[0] })
         .eq("id", id);
       if (error) throw error;
+
+      // If payment has a plan, add credits to the client
+      if (payment?.plan_id && payment?.client_id) {
+        const plan = plans?.find((p) => p.id === payment.plan_id);
+        if (plan) {
+          // Fetch current credits
+          const { data: client } = await supabase
+            .from("clients")
+            .select("remaining_credits")
+            .eq("id", payment.client_id)
+            .single();
+          
+          if (client) {
+            await supabase
+              .from("clients")
+              .update({ remaining_credits: client.remaining_credits + plan.total_sessions })
+              .eq("id", payment.client_id);
+          }
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["pending-payments-count"] });
       qc.invalidateQueries({ queryKey: ["monthly-revenue"] });
-      toast.success("Pagamento confirmado");
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      qc.invalidateQueries({ queryKey: ["clients-list"] });
+      qc.invalidateQueries({ queryKey: ["active-clients-count"] });
+      toast.success("Pagamento atualizado! ✅");
     },
   });
 
