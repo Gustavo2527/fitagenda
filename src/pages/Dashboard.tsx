@@ -123,6 +123,14 @@ export default function Dashboard() {
     <div className="safe-bottom min-h-screen bg-background">
       <PageHeader title="Painel" subtitle="Bem-vindo de volta, treinador 💪" />
 
+      {/* Botão de teste temporário — remover depois */}
+      <div className="px-4 mb-4">
+        <Button onClick={testNotification} variant="outline" className="w-full gap-2">
+          <Bell className="h-4 w-4" />
+          Testar Notificação
+        </Button>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 px-4">
         {stats.map((stat) => (
           <button
