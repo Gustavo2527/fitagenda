@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRealtimeTable } from "@/hooks/useRealtimeTable";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PageHeader from "@/components/PageHeader";
@@ -19,6 +20,9 @@ export default function Clients() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [planId, setPlanId] = useState("");
+
+  // Realtime: auto-refresh when clients change
+  useRealtimeTable("clients", [["clients"], ["clients-list"], ["active-clients-count"]]);
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ["clients"],
