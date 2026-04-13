@@ -16,6 +16,7 @@ import { ptBR } from "date-fns/locale";
 
 export default function CalendarPage() {
   const { user } = useAuth();
+  const { rescheduleToday } = useNotificationActions();
   const qc = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
