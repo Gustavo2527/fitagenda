@@ -10,6 +10,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import NotificationPermissionModal from "@/components/NotificationPermissionModal";
 import SessionCompletionModal from "@/components/SessionCompletionModal";
 import IOSVersionWarning from "@/components/IOSVersionWarning";
+import { NotificationContext } from "@/contexts/NotificationContext";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import CalendarPage from "./pages/CalendarPage";
@@ -21,9 +22,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { pendingCompletion, handleCompletionConfirm, dismissCompletion } = useNotifications();
+  const { pendingCompletion, handleCompletionConfirm, dismissCompletion, rescheduleToday } = useNotifications();
   return (
-    <>
+    <NotificationContext.Provider value={{ rescheduleToday }}>
       {children}
       <BottomNav />
       <NotificationPermissionModal />
@@ -35,7 +36,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         onConfirm={handleCompletionConfirm}
         onClose={dismissCompletion}
       />
-    </>
+    </NotificationContext.Provider>
   );
 }
 
