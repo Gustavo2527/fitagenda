@@ -48,7 +48,7 @@ export default function Payments() {
   const { data: plans } = useQuery({
     queryKey: ["plans-for-payment"],
     queryFn: async () => {
-      const { data } = await supabase.from("plans").select("id, name, price").eq("is_active", true);
+      const { data } = await supabase.from("plans").select("id, name, price, total_sessions").eq("is_active", true);
       return data ?? [];
     },
   });
