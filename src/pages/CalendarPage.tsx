@@ -76,6 +76,7 @@ export default function CalendarPage() {
       qc.invalidateQueries({ queryKey: ["sessions-today"] });
       qc.invalidateQueries({ queryKey: ["clients-list"] });
       toast.success("Aula agendada");
+      rescheduleToday();
       setOpen(false);
       setClientId("");
       setNotes("");
