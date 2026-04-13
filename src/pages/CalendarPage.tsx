@@ -99,6 +99,7 @@ export default function CalendarPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sessions-week"] });
       qc.invalidateQueries({ queryKey: ["sessions-today"] });
+      rescheduleToday();
       toast.success("Aula atualizada");
     },
   });
