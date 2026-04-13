@@ -21,6 +21,9 @@ export default function Clients() {
   const [phone, setPhone] = useState("");
   const [planId, setPlanId] = useState("");
 
+  // Realtime: auto-refresh when clients change
+  useRealtimeTable("clients", [["clients"], ["clients-list"], ["active-clients-count"]]);
+
   const { data: clients, isLoading } = useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
