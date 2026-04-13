@@ -10,11 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { useNotificationActions } from "@/contexts/NotificationContext";
 import { format, addDays, startOfWeek, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function CalendarPage() {
   const { user } = useAuth();
+  const { rescheduleToday } = useNotificationActions();
   const qc = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -74,6 +76,7 @@ export default function CalendarPage() {
       qc.invalidateQueries({ queryKey: ["sessions-today"] });
       qc.invalidateQueries({ queryKey: ["clients-list"] });
       toast.success("Aula agendada");
+      rescheduleToday();
       setOpen(false);
       setClientId("");
       setNotes("");
@@ -96,6 +99,7 @@ export default function CalendarPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sessions-week"] });
       qc.invalidateQueries({ queryKey: ["sessions-today"] });
+      rescheduleToday();
       toast.success("Aula atualizada");
     },
   });
