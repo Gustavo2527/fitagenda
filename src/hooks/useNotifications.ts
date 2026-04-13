@@ -29,20 +29,13 @@ export function useNotifications() {
 
   const isiOS = isIOS();
 
-  // Register SW
+  // Get SW registration (registered in main.tsx)
   useEffect(() => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+    if (!("serviceWorker" in navigator)) return;
 
-    const setup = async () => {
-      try {
-        const reg = await navigator.serviceWorker.register("/service-worker.js");
-        swRegistrationRef.current = reg;
-      } catch (err) {
-        console.error("SW registration failed:", err);
-      }
-    };
-
-    setup();
+    navigator.serviceWorker.ready.then((reg) => {
+      swRegistrationRef.current = reg;
+    });
   }, []);
 
   // Listen for SW messages to update session status
