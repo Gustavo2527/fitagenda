@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { toast } from "sonner";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
 
 export default function NotificationPermissionModal() {
   const [open, setOpen] = useState(false);
+  const { subscribe } = usePushSubscription();
 
   useEffect(() => {
     if (!("Notification" in window)) return;
@@ -20,6 +22,8 @@ export default function NotificationPermissionModal() {
     setOpen(false);
     if (result === "granted") {
       toast.success("Notificações ativadas com sucesso!");
+      // Subscribe to push after permission granted
+      await subscribe();
     } else {
       toast.info("Você pode ativar as notificações depois nas configurações do navegador.");
     }
