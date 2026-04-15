@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import PageHeader from "@/components/PageHeader";
-import { Users, Calendar, DollarSign, TrendingUp, Bell } from "lucide-react";
+import { Users, Calendar, DollarSign, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -80,56 +80,9 @@ export default function Dashboard() {
     no_show: "bg-warning/20 text-warning",
   };
 
-  const testNotification = async () => {
-    const results: string[] = [];
-
-    // 1. Permission
-    const perm = "Notification" in window ? Notification.permission : "API indisponível";
-    results.push(`Permissão: ${perm}`);
-
-    // 2. SW status
-    if ("serviceWorker" in navigator) {
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        results.push(`SW ativo: ${reg.active?.state ?? "sem active"}`);
-
-        // 3. Test notification via SW
-        if (perm === "granted") {
-          await reg.showNotification("🔔 Teste FitAgenda", {
-            body: "Se você está vendo isso, as notificações funcionam!",
-            icon: "/icon-192x192.png",
-            tag: "test-notification",
-          });
-          results.push("Notificação de teste disparada ✅");
-        } else {
-          results.push("Notificação NÃO disparada (permissão não concedida)");
-        }
-      } catch (err) {
-        results.push(`Erro SW: ${err}`);
-      }
-    } else {
-      results.push("Service Worker não suportado");
-    }
-
-    // 4. Standalone check
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches
-      || (navigator as any).standalone === true;
-    results.push(`Modo standalone: ${isStandalone ? "Sim" : "Não"}`);
-
-    alert(results.join("\n"));
-  };
-
   return (
     <div className="safe-bottom min-h-screen bg-background">
       <PageHeader title="Painel" subtitle="Bem-vindo de volta, treinador 💪" />
-
-      {/* Botão de teste temporário — remover depois */}
-      <div className="px-4 mb-4">
-        <Button onClick={testNotification} variant="outline" className="w-full gap-2">
-          <Bell className="h-4 w-4" />
-          Testar Notificação
-        </Button>
-      </div>
 
       <div className="grid grid-cols-2 gap-3 px-4">
         {stats.map((stat) => (
