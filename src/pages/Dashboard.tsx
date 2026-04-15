@@ -5,7 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { Users, Calendar, DollarSign, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+
 
 export default function Dashboard() {
   const { user } = useAuth();
