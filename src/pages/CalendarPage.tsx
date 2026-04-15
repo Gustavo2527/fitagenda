@@ -102,9 +102,18 @@ export default function CalendarPage() {
   };
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, date }: { id: string; status: string; date: string }) => {
       const { error } = await supabase.from("sessions").update({ status: status as any }).eq("id", id);
       if (error) throw error;
+
+      // Re-schedule notifications for this date
+      try {
+        await supabase.functions.invoke("schedule-notifications", {
+          body: { user_id: user!.id, date },
+        });
+      } catch (err) {
+        console.warn("[CalendarPage] Failed to reschedule notifications:", err);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sessions-week"] });
@@ -249,7 +258,7 @@ export default function CalendarPage() {
                   </div>
                   <Select
                     value={session.status}
-                    onValueChange={(status) => updateStatus.mutate({ id: session.id, status })}
+                    onValueChange={(status) => updateStatus.mutate({ id: session.id, status, date: session.date })}
                   >
                     <SelectTrigger className={`w-auto gap-1 border-0 text-xs ${statusColors[session.status]}`}>
                       <SelectValue />
