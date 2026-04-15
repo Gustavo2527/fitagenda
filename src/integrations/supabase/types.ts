@@ -231,6 +231,44 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          send_at: string
+          sent: boolean
+          session_id: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          send_at: string
+          sent?: boolean
+          session_id: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          send_at?: string
+          sent?: boolean
+          session_id?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_notifications_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
           client_id: string
@@ -286,6 +324,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      notification_type: "lembrete" | "confirmacao"
       payment_status: "pending" | "paid" | "refunded"
       session_status: "scheduled" | "completed" | "cancelled" | "no_show"
     }
@@ -415,6 +454,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      notification_type: ["lembrete", "confirmacao"],
       payment_status: ["pending", "paid", "refunded"],
       session_status: ["scheduled", "completed", "cancelled", "no_show"],
     },
