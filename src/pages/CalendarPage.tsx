@@ -70,6 +70,16 @@ export default function CalendarPage() {
           .update({ remaining_credits: client.remaining_credits - 1 })
           .eq("id", clientId);
       }
+
+      // Schedule server-side notifications for this session
+      try {
+        await supabase.functions.invoke("schedule-notifications", {
+          body: { user_id: user!.id, date: format(selectedDate, "yyyy-MM-dd") },
+        });
+        console.log("[CalendarPage] Server notifications scheduled for", format(selectedDate, "yyyy-MM-dd"));
+      } catch (err) {
+        console.warn("[CalendarPage] Failed to schedule server notifications:", err);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sessions-week"] });
