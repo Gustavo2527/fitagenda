@@ -70,9 +70,9 @@ Deno.serve(async (req) => {
         .eq("session_id", session.id)
         .eq("sent", false);
 
-      // Parse session start time as local date+time
+      // Parse session start time in Brasília timezone (UTC-3)
       // session.date = "2026-04-15", session.start_time = "09:00:00"
-      const sessionDateTime = new Date(`${session.date}T${session.start_time}`);
+      const sessionDateTime = new Date(`${session.date}T${session.start_time}-03:00`);
 
       // 1. Reminder: 20 minutes before
       const reminderTime = new Date(sessionDateTime.getTime() - 20 * 60 * 1000);
