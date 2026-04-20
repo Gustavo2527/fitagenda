@@ -202,6 +202,16 @@ export function useNotifications() {
     const today = format(new Date(), "yyyy-MM-dd");
     console.log(`[Notificações] Buscando aulas do dia ${today}...`);
 
+    // Ensure server-side scheduling is up-to-date (primary path; frontend timers are fallback)
+    try {
+      await supabase.functions.invoke("schedule-notifications", {
+        body: { user_id: user.id, date: today },
+      });
+      console.log("[Notificações] Server-side scheduling sincronizado");
+    } catch (err) {
+      console.error("[Notificações] Falha ao sincronizar server-side:", err);
+    }
+
     const { data } = await supabase
       .from("sessions")
       .select("id, date, start_time, end_time, status, clients(name)")
